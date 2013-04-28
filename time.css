@@ -3,8 +3,6 @@ input { background:black;color:white; border:1px solid grey; font-size:150%; pad
 textarea { background:black;color:white;font-size:100%;padding:10px; }
 
 div.box {  padding:15px 13px 15px 13px; cursor:pointer; font-size:150%; }
-div.box:hover {  background-color:#333;  }
-div.box:focus {  background-color:#333;  }
 
-div.selected {  background-color:#222; }
+td:focus { outline-width:0; }
 

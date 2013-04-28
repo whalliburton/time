@@ -1,5 +1,17 @@
 (in-package :time)
 
+(defun create-color-gradient (from to &key hex (steps 21))
+  (let ((vector
+          (second
+           (multiple-value-list
+            (make-linear-gradient '(0 0) '(0 10) :steps steps
+                                                 :color-1 (multiple-value-list (rgba-from-hex (color-hex from)))
+                                                 :color-2 (multiple-value-list (rgba-from-hex (color-hex to))))))))
+    (if hex
+      (iter (for (r g b a) in-vector vector)
+            (collect (rgb->web r g b)))
+      vector)))
+
 (defvar *scripts* nil)
 
 (defmacro script (text)
@@ -35,36 +47,56 @@
 (defun set-stack (key stack)
   (setf (session-value 'stack) (cons key stack)))
 
+(defparameter *gradient* (let* ((steps 5)
+                                (list
+                                  (nconc
+                                   (create-color-gradient "red" "orange" :hex t :steps steps)
+                                   (create-color-gradient "orange" "yellow" :hex t :steps steps)
+                                   (create-color-gradient "yellow" "green" :hex t :steps steps)
+                                   (create-color-gradient "green" "blue" :hex t :steps steps)
+                                   (create-color-gradient "blue" "violet" :hex t :steps steps)
+                                   )))
+                           (make-array (length list) :initial-contents list)))
+
 (defun render-stack (stream)
   (let (scripts
+        (gradient-index 0)
         (stack (session-value 'stack)))
-    (with-html-output (stream)
-      (:table
-       :id "stack"
-       (:tr
-        (iter
-         (with last-name)
-         (for el on (cdr stack))
-         (for (name rows) in (cdr stack))
-         (htm
-          (:td :valign :top :style "padding-right:40px;"
-               (:table :id name
-                       (iter (for row in rows)
-                             (let ((title (if (consp row) (first row) row)))
-                               (htm (:tr (:td :tabindex 0
-                                              :id (format nil "~A-~A" name title)
-                                              (:div :class "box" (esc title)))))))))
-          (push (list
-                 name name
-                 (if last-name (prin1-to-string last-name) "false")
-                 (if (cdr el) (prin1-to-string (caadr el)) "false"))
-                scripts)
-          (setf last-name name)))))
-      (let ((scripts
-              (with-output-to-string (stream)
-                (iter (for script in (nreverse scripts))
-                      (apply #'format stream "setupNavigation(~S,\"~A-\",~A,~A);" script)))))
-        (script scripts)))))
+    (flet ((next-gradient ()
+             (prog1
+                 (aref *gradient* gradient-index)
+               (incf gradient-index))))
+      (with-html-output (stream)
+        (:table
+         :id "stack"
+         (:tr
+          (iter
+           (with last-name)
+           (for el on (cdr stack))
+           (for (name rows) in (cdr stack))
+           (htm
+            (:td :valign :top :style "padding-right:40px;"
+                 (:table :id name
+                         (iter (for row in rows)
+                               (let ((title (if (consp row) (first row) row)))
+                                 (htm (:tr (:td :tabindex 0
+                                                :onfocus "handleFocus(this,event);"
+                                                :onblur "handleBlur(this,event);"
+                                                :id (format nil "~A-~A" name title)
+                                                (:div :class "box"
+                                                      :style (format nil "background-color:~A;" (next-gradient))
+                                                      (esc title)))))))))
+            (push (list
+                   name name
+                   (if last-name (prin1-to-string last-name) "false")
+                   (if (cdr el) (prin1-to-string (caadr el)) "false"))
+                  scripts)
+            (setf last-name name)))))
+        (let ((scripts
+                (with-output-to-string (stream)
+                  (iter (for script in (nreverse scripts))
+                        (apply #'format stream "setupNavigation(~S,\"~A-\",~A,~A);" script)))))
+          (script scripts))))))
 
 
 (defun render-tasks (stream)

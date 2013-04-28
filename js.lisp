@@ -44,6 +44,14 @@
 
      (defun handle-navigation-enter (el event)
        (request "selection" (create :element (@ (@ document active-element) id))))
-     )))
+
+     (defun handle-focus (el event)
+       (let ((child (@ el first-child)))
+         (setf (@ child saved-background) (@ child style background-color)
+               (@ child style background-color) "blue")))
+
+     (defun handle-blur (el event)
+       (let ((child (@ el first-child)))
+         (setf (@ child style background-color) (@ child saved-background)))))))
 
 (defun time-js-file () *time-js-file*)

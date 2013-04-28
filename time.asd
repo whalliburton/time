@@ -10,4 +10,4 @@
                (:file "commands")
                (:file "application")
                (:file "initialize"))
-  :depends-on (:deck-client :web :cl-who :local-time))
+  :depends-on (:deck-client :web :cl-who :local-time :color-gradients))
