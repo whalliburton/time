@@ -1,0 +1,1 @@
+(time sbcl (("time")) "Welcome to Time!" #\BLACK_SQUARE "black")
