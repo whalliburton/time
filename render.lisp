@@ -25,13 +25,15 @@
     (with-html-output (stream)
       (:div (:input :style "width:600px;"
                     :type "text" :id "command" :onkeypress "sendOnEnter(this,event,\"command\");"))
-      (script "focusId('command');")
       (cond
         ((eq page 'error) (htm (:div :style "padding:20px" (esc (session-value 'error-message)))))
         ((eq page 'help) (render-help stream))
         ((eq page 'now) (render-now stream))
         ((eq page 'tasks) (render-tasks stream))
-        (t (htm (:div :style "padding:20px" (str "Teach me. 'Help' is available."))))))))
+        (t (htm (:div :style "padding:20px" (str "Teach me. 'Help' is available.")))))
+      (if (session-value 'select)
+        (script (format nil "moveTo('~A');" (session-value 'select)))
+        (script "focusId('command');")))))
 
 (defun rerender-body ()
   (let* ((*scripts* (list 'scripts))
@@ -66,6 +68,7 @@
              (prog1
                  (aref *gradient* gradient-index)
                (incf gradient-index))))
+      (script (format nil "setShortcutMove('command','down','~A');" (caadr (session-value 'stack))))
       (with-html-output (stream)
         (:table
          :id "stack"
@@ -88,7 +91,7 @@
                                                       (esc title)))))))))
             (push (list
                    name name
-                   (if last-name (prin1-to-string last-name) "false")
+                   (if last-name (prin1-to-string last-name) "\"command\"")
                    (if (cdr el) (prin1-to-string (caadr el)) "false"))
                   scripts)
             (setf last-name name)))))
@@ -141,7 +144,8 @@
 (defun stack-push (column)
   (set-stack
    (car (session-value 'stack))
-   (append (cdr (session-value 'stack)) column)))
+   (append (cdr (session-value 'stack)) column))
+  (setf (session-value 'select) (caar column)))
 
 (defun stack-pushnew (column)
   (unless (assoc (caar column) (cdr (session-value 'stack)) :test 'equal)
@@ -149,9 +153,17 @@
      (car (session-value 'stack))
      (append (cdr (session-value 'stack)) column))))
 
+(defun possibly-remove-column (name)
+  (set-stack
+   (car (session-value 'stack))
+   (iter (for column in (cdr (session-value 'stack)))
+         (unless (equal name (car column))
+           (collect column)))))
+
 (defun select-help (category)
-  (stack-pushnew
-   `((,(concatenate 'string "text-" category)
+  (possibly-remove-column "text")
+  (stack-push
+   `(("text"
       ,(cond
          ((equal category "introduction")
           '(("This is the introduction.")))

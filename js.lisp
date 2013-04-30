@@ -3,20 +3,30 @@
 (defparameter *time-js-file*
   (ps*
    '(progn
+     (defun set-shortcut-move (target key id)
+       (let* ((el (get-by-id target))
+              (opt
+                (create :type "keydown"
+                        :propagate false
+                        :disable_in_input false
+                        :target el
+                        :keycode false)))
+         ((@ shortcut add) key (lambda (event) (move-to id)) opt)))
+
      (defun setup-navigation (target prefix left right)
-      (let* ((el (get-by-id target))
-             (opt
-               (create :type "keydown"
-                       :propagate false
-                       :disable_in_input false
-                       :target el
-                       :keycode false))))
-      (setf (slot-value el 'navigation-elements) (collect-children-with-prefix el prefix))
-      (when left ((@ shortcut add) "left" (lambda (event) (move-to left)) opt))
-      (when right ((@ shortcut add) "right" (lambda (event) (move-to right)) opt))
-      ((@ shortcut add) "up" (lambda (event) (handle-navigation el event true)) opt)
-      ((@ shortcut add) "down" (lambda (event) (handle-navigation el event false)) opt)
-      ((@ shortcut add) "enter" (lambda (event) (handle-navigation-enter el event)) opt))
+       (let* ((el (get-by-id target))
+              (opt
+                (create :type "keydown"
+                        :propagate false
+                        :disable_in_input false
+                        :target el
+                        :keycode false))))
+       (setf (slot-value el 'navigation-elements) (collect-children-with-prefix el prefix))
+       (when left ((@ shortcut add) "left" (lambda (event) (move-to left)) opt))
+       (when right ((@ shortcut add) "right" (lambda (event) (move-to right)) opt))
+       ((@ shortcut add) "up" (lambda (event) (handle-navigation el event true)) opt)
+       ((@ shortcut add) "down" (lambda (event) (handle-navigation el event false)) opt)
+       ((@ shortcut add) "enter" (lambda (event) (handle-navigation-enter el event)) opt))
 
      (defun move-to (id)
        (let* ((el (get-by-id id))
