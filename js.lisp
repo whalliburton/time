@@ -59,7 +59,7 @@
        (when *last-focus* (clear-focus *last-focus*))
        (let ((child (@ el first-child)))
          (setf (@ child saved-background) (@ child style background-color)
-               (@ child style background-color) "blue"
+               (@ child style background-color) "darkblue"
                *last-focus* child)))
 
      (defun handle-blur (el event)
