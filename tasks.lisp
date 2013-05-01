@@ -24,3 +24,8 @@
   (deck:set-fields (session-value 'selected) `(("deleted" t)))
   (setup-showing)
   (rerender-body))
+
+(defmethod render ((type (eql :task)) stream node)
+  (with-html-output (stream)
+    (when (field-value node "deleted") (web::icon :trash))
+    (esc (field-value node "title"))))
