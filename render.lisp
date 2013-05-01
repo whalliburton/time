@@ -74,11 +74,12 @@
             (:td :valign :top :style "padding-right:40px;"
                  (:table :id name
                          (iter (for row in rows)
+                               (for index from 0)
                                (let ((title (if (consp row) (first row) row)))
                                  (htm (:tr (:td :tabindex 0
                                                 :onfocus "handleFocus(this,event);"
                                                 :onblur "handleBlur(this,event);"
-                                                :id (format nil "~A-~A" name title)
+                                                :id (format nil "~A-~A" name index)
                                                 (:div :class "box"
                                                       :style (format nil "background-color:~A;" (next-gradient))
                                                       (esc title)))))))))
@@ -98,15 +99,14 @@
 (defun handle-selection (element)
   (let* ((pos (position #\- element))
          (category (subseq element 0 pos))
-         (index (subseq element (1+ pos)))
+         (index (parse-integer (subseq element (1+ pos))))
          (stack (session-value 'stack))
          (column (second (or (assoc category (cdr stack) :test #'equal)
                              (error "Unknown category ~S." category))))
-         (row (cdr (or (assoc index column :test #'equal)
-                       (error "Unknown index ~S." index)))))
-    (destructuring-bind (action) row
-      (etypecase action
-        (symbol (funcall action index))))))
+         (row (nth index column)))
+    (destructuring-bind (name &key onselection) row
+      (etypecase onselection
+        (symbol (funcall onselection index name))))))
 
 (defun initialize-stack (key new-stack)
   (let ((stack (session-value 'stack)))
@@ -121,9 +121,7 @@
 
 (defun stack-pushnew (column)
   (unless (assoc (caar column) (cdr (session-value 'stack)) :test 'equal)
-    (set-stack
-     (car (session-value 'stack))
-     (append (cdr (session-value 'stack)) column))))
+    (stack-push column)))
 
 (defun possibly-remove-column (name)
   (set-stack

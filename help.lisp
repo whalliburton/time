@@ -6,12 +6,13 @@
   (set-stack
    'help
    `(("categories"
-      (("introduction" select-help)
-       ("tasks" select-help)
-       ("now" select-help)))))
+      (("introduction" :onselection select-help)
+       ("tasks" :onselection select-help)
+       ("now" :onselection select-help)))))
   (view-page 'stack))
 
-(defun select-help (category)
+(defun select-help (index category)
+  (declare (ignore index))
   (possibly-remove-column "text")
   (stack-push
    `(("text"
