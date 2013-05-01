@@ -3,33 +3,40 @@
 (defparameter *time-js-file*
   (ps*
    '(progn
+     (defun listen (element callback)
+       ((@ element add-event-listener) "keydown" callback))
+
+     (defun numberp (el)
+       (return (=== (typeof el) "number")))
+
+     (defun build-shortcut (key callback)
+       (return
+         (lambda (e)
+           (let* ((e (or e (@ window event)))
+                  (code (or (@ e key-code) (@ e which))))
+             (console :key code)
+             (when (= key code) (callback e))))))
+
      (defun set-shortcut-move (target key id)
        (let* ((el (get-by-id target))
-              (opt
-                (create :type "keydown"
-                        :propagate false
-                        :disable_in_input false
-                        :target el
-                        :keycode false)))
-         ((@ shortcut add) key (lambda (event) (move-to id)) opt)))
+              (fn (lambda (event) (move-to id))))
+         (listen
+          el
+          (if (numberp key)
+            (build-shortcut key fn)
+            ((@ shortcut build) key fn)))))
 
      (defun setup-navigation (target prefix left right)
-       (let* ((el (get-by-id target))
-              (opt
-                (create :type "keydown"
-                        :propagate false
-                        :disable_in_input false
-                        :target el
-                        :keycode false))))
-       (setf (slot-value el 'navigation-elements) (collect-children-with-prefix el prefix))
-       (when left ((@ shortcut add) "left" (lambda (event) (move-to left)) opt))
-       (when right ((@ shortcut add) "right" (lambda (event) (move-to right)) opt))
-       ((@ shortcut add) "up" (lambda (event) (handle-navigation el event true)) opt)
-       ((@ shortcut add) "down" (lambda (event) (handle-navigation el event false)) opt)
-       ((@ shortcut add) "enter" (lambda (event) (handle-navigation-enter el event)) opt))
+       (let ((el (get-by-id target)))
+         (setf (slot-value el 'navigation-elements) (collect-children-with-prefix el prefix))
+         (when left (listen el ((@ shortcut build) "left" (lambda (event) (move-to left)))))
+         (when right (listen el ((@ shortcut build) "right" (lambda (event) (move-to right)))))
+         (listen el ((@ shortcut build) "up" (lambda (event) (handle-navigation el event true))))
+         (listen el ((@ shortcut build) "down" (lambda (event) (handle-navigation el event false))))
+         (listen el ((@ shortcut build) "enter" (lambda (event) (handle-navigation-enter el event))))))
 
      (defun focus (el)
-      ((@ el focus)))
+       ((@ el focus)))
 
      (defun move-to (id)
        (let* ((el (get-by-id id))

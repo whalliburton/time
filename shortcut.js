@@ -6,13 +6,11 @@
  */
 shortcut = {
 	'all_shortcuts':{},//All the shortcuts are stored in this array
-	'add': function(shortcut_combination,callback,opt) {
+	'build': function(shortcut_combination,callback,opt) {
 		//Provide a set of default options
 		var default_options = {
-			'type':'keydown',
 			'propagate':false,
 			'disable_in_input':false,
-			'target':document,
 			'keycode':false
 		}
 		if(!opt) opt = default_options;
@@ -21,11 +19,6 @@ shortcut = {
 				if(typeof opt[dfo] == 'undefined') opt[dfo] = default_options[dfo];
 			}
 		}
-
-		var ele = opt.target;
-		if(typeof opt.target == 'string') ele = document.getElementById(opt.target);
-		var ths = this;
-		shortcut_combination = shortcut_combination.toLowerCase();
 
 		//The function to be called at keypress
 		var func = function(e) {
@@ -114,7 +107,6 @@ shortcut = {
 				'up':38,
 				'right':39,
 				'down':40,
-
 				'f1':112,
 				'f2':113,
 				'f3':114,
@@ -195,29 +187,6 @@ shortcut = {
 				}
 			}
 		}
-		this.all_shortcuts[shortcut_combination] = {
-			'callback':func,
-			'target':ele,
-			'event': opt['type']
-		};
-		//Attach the function with the event
-		if(ele.addEventListener) ele.addEventListener(opt['type'], func, false);
-		else if(ele.attachEvent) ele.attachEvent('on'+opt['type'], func);
-		else ele['on'+opt['type']] = func;
-	},
-
-	//Remove the shortcut - just specify the shortcut and I will remove the binding
-	'remove':function(shortcut_combination) {
-		shortcut_combination = shortcut_combination.toLowerCase();
-		var binding = this.all_shortcuts[shortcut_combination];
-		delete(this.all_shortcuts[shortcut_combination])
-		if(!binding) return;
-		var type = binding['event'];
-		var ele = binding['target'];
-		var callback = binding['callback'];
-
-		if(ele.detachEvent) ele.detachEvent('on'+type, callback);
-		else if(ele.removeEventListener) ele.removeEventListener(type, callback, false);
-		else ele['on'+type] = false;
+                return func;
 	}
 }
