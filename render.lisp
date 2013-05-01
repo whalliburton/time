@@ -26,6 +26,7 @@
       (:div (:input :style "width:600px;"
                     :type "text" :id "command" :onkeypress "sendOnEnter(this,event,\"command\");"))
       (cond
+        ((eq page 'render-page-error) (htm (:div :style "padding:4px;" (esc (session-value 'error-message)))))
         (page (funcall page stream))
         (t (htm (:div :style "padding:20px" (str "Teach me. 'Help' is available.")))))
       (if (session-value 'select)
@@ -141,4 +142,5 @@
 (define-page (stack :no-heading t)
   (:h1 (esc (string-downcase (car (session-value 'stack)))))
   (render-stack stream))
+
 
