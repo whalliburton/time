@@ -75,14 +75,13 @@
                  (:table :id name
                          (iter (for row in rows)
                                (for index from 0)
-                               (let ((title (if (consp row) (first row) row)))
-                                 (htm (:tr (:td :tabindex 0
-                                                :onfocus "handleFocus(this,event);"
-                                                :onblur "handleBlur(this,event);"
-                                                :id (format nil "~A-~A" name index)
-                                                (:div :class "box"
-                                                      :style (format nil "background-color:~A;" (next-gradient))
-                                                      (esc title)))))))))
+                               (htm (:tr (:td :tabindex 0
+                                              :onfocus "handleFocus(this,event);"
+                                              :onblur "handleBlur(this,event);"
+                                              :id (format nil "~A-~A" name index)
+                                              (:div :class "box"
+                                                    :style (format nil "background-color:~A;" (next-gradient))
+                                                    (render-stack-element stream (car row)))))))))
             (push (list
                    name name
                    (if last-name (prin1-to-string last-name) "\"command\"")
@@ -95,6 +94,23 @@
                         (apply #'format stream "setupNavigation(~S,\"~A-\",~A,~A);" script)))))
           (script scripts))
         (script "setShortcutFn(\"stack\",81,function () {request(\"pop-stack\");} );")))))
+
+(defun-simple-memoized template-type-keyword (template-id)
+  (intern (string-upcase (field-value (deck:get-node template-id) "name")) :keyword))
+
+(defun render-stack-element (stream row)
+  (etypecase row
+    (string (princ (cl-who:escape-string row) stream))
+    (node (render (template-type-keyword (template-id row)) stream row))))
+
+(defmethod render (type stream node)
+  (with-html-output (stream)
+    (:table
+     (:tr
+      (:th (str "id"))
+      (:td (str (id node))))
+     (iter (for (name val) in (fields node))
+           (htm (:tr (:th (esc name)) (:td (esc val))))))))
 
 (defun handle-selection (element)
   (let* ((pos (position #\- element))
