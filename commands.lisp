@@ -31,7 +31,7 @@
 
 (define-command add (title)
   (deck:add-node "time:task" `(("title" ,title)))
-  (time-command-tasks nil))
+  (time-command-show "tasks"))
 
 
 

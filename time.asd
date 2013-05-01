@@ -9,6 +9,7 @@
                (:file "render")
                (:file "commands")
                (:file "help")
+               (:file "show")
                (:file "now")
                (:file "tasks")
                (:file "application")

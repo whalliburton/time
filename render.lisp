@@ -110,7 +110,7 @@
       (:th (str "id"))
       (:td (str (id node))))
      (iter (for (name val) in (fields node))
-           (htm (:tr (:th (esc name)) (:td (esc val))))))))
+           (htm (:tr (:th (esc name)) (:td (esc (princ-to-string val)))))))))
 
 (defun handle-selection (element)
   (let* ((pos (position #\- element))
@@ -121,8 +121,9 @@
                              (error "Unknown category ~S." category))))
          (row (nth index column)))
     (destructuring-bind (name &key onselection) row
-      (etypecase onselection
-        (symbol (funcall onselection index name))))))
+      (when onselection
+        (etypecase onselection
+          (symbol (funcall onselection index name)))))))
 
 (defun initialize-stack (key new-stack)
   (let ((stack (session-value 'stack)))

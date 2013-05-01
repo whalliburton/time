@@ -5,7 +5,8 @@
   (start-printer-session))
 
 (defparameter *templates*
-  '(("task" (("title" :string) ("priority" :integer)))
+  '(("task" (("title" :string) ("priority" :integer) ("deleted" :boolean)
+             ("completed" :boolean) ("completed on" :date)))
     ("current task" "system:user" "task" "current worker")))
 
 (defun build (&key recreate)
