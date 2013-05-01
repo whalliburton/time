@@ -92,7 +92,8 @@
                 (with-output-to-string (stream)
                   (iter (for script in (nreverse scripts))
                         (apply #'format stream "setupNavigation(~S,\"~A-\",~A,~A);" script)))))
-          (script scripts))))))
+          (script scripts))
+        (script "setShortcutFn(\"stack\",81,function () {request(\"pop-stack\");} );")))))
 
 (defun handle-selection (element)
   (let* ((pos (position #\- element))
@@ -143,4 +144,9 @@
   (:h1 (esc (string-downcase (car (session-value 'stack)))))
   (render-stack stream))
 
-
+(defun pop-stack ()
+  (setf (session-value 'stack) (butlast (session-value 'stack)))
+  (when (null (cdr (session-value 'stack)))
+    (setf (session-value 'page) nil))
+  (setf (session-value 'select) (car (last1 (cdr (session-value 'stack)))))
+  (rerender-body))

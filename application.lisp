@@ -11,7 +11,8 @@
                        :title "Time"
                        :renderer 'render-time-front-page
                        :commands '(("command" handle-command :value)
-                                   ("selection" handle-selection :element))
+                                   ("selection" handle-selection :element)
+                                   ("pop-stack" pop-stack))
                        :dispatches
                        `(,(hunchentoot:create-static-file-dispatcher-and-handler "/time.css" (time-file "time.css"))
                           ,(hunchentoot:create-static-file-dispatcher-and-handler "/shortcut.js" (time-file "shortcut.js"))

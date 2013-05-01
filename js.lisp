@@ -14,17 +14,17 @@
          (lambda (e)
            (let* ((e (or e (@ window event)))
                   (code (or (@ e key-code) (@ e which))))
-             (console :key code)
              (when (= key code) (callback e))))))
 
+     (defun set-shortcut-fn (target key fn)
+       (listen
+        (get-by-id target)
+        (if (numberp key)
+          (build-shortcut key fn)
+          ((@ shortcut build) key fn))))
+
      (defun set-shortcut-move (target key id)
-       (let* ((el (get-by-id target))
-              (fn (lambda (event) (move-to id))))
-         (listen
-          el
-          (if (numberp key)
-            (build-shortcut key fn)
-            ((@ shortcut build) key fn)))))
+       (set-shortcut-fn target key (lambda (event) (move-to id))))
 
      (defun setup-navigation (target prefix left right)
        (let ((el (get-by-id target)))
