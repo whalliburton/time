@@ -19,29 +19,15 @@
        (funcall
         (intern (mkstr 'time-command- (string-upcase command)) :time) arguments))
       (t (unknown-command command))))
-  (format nil "~AfocusId('command');" (rerender-body)))
+  (rerender-body))
 
-(defun view-page (name) (setf (session-value 'page) name))
+(defun view-page (name) (setf (session-value 'page) (symb 'render-page- name)))
 (defun current-page () (session-value 'page))
 
 (defun unknown-command (value)
   (setf (session-value 'error-message)
         (format nil "'~A' was not understood. Perhaps you need 'Help'?" (string-capitalize value)))
   (view-page 'error))
-
-(define-command now (argument)
-  (declare (ignore argument))
-  (view-page 'now))
-
-(define-command tasks (argument)
-  (declare (ignore argument))
-  (setf (session-value 'tasks) (deck:search "time:task")
-        (session-value 'selected-task) nil)
-  (view-page 'tasks))
-
-(define-command help (category)
-  (setf (session-value 'help-category) category)
-  (view-page 'help))
 
 (define-command add (title)
   (deck:add-node "time:task" `(("title" ,title)))

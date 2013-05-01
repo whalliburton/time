@@ -35,3 +35,8 @@
     "Break with VARS, for debugging."
     `(break ,(generate-control-string vars)
             ,@(remove-if #'keywordp vars))))
+
+(defun ensure-list (list)
+  (if (listp list)
+    list
+    (list list)))

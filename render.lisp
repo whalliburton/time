@@ -26,10 +26,7 @@
       (:div (:input :style "width:600px;"
                     :type "text" :id "command" :onkeypress "sendOnEnter(this,event,\"command\");"))
       (cond
-        ((eq page 'error) (htm (:div :style "padding:20px" (esc (session-value 'error-message)))))
-        ((eq page 'help) (render-help stream))
-        ((eq page 'now) (render-now stream))
-        ((eq page 'tasks) (render-tasks stream))
+        (page (funcall page stream))
         (t (htm (:div :style "padding:20px" (str "Teach me. 'Help' is available.")))))
       (if (session-value 'select)
         (script (format nil "moveTo('~A');" (session-value 'select)))
@@ -39,12 +36,7 @@
   (let* ((*scripts* (list 'scripts))
          (body (with-output-to-string (stream) (render-time-front-page stream)))
          (scripts (cdr (reverse *scripts*))))
-    (format nil "setBody(\"~A\");~{~A~^;~}" (url-encode body) scripts)))
-
-(defun render-now (stream)
-  (with-html-output (stream)
-    (:h1 (str "now"))
-    (:div (fmt "~A" (format-timestring nil (now) :format +asctime-format+)))))
+    (format nil "setBody(\"~A\");~{~A~}" (url-encode body) scripts)))
 
 (defun set-stack (key stack)
   (setf (session-value 'stack) (cons key stack)))
@@ -101,17 +93,6 @@
                         (apply #'format stream "setupNavigation(~S,\"~A-\",~A,~A);" script)))))
           (script scripts))))))
 
-
-(defun render-tasks (stream)
-  (with-html-output (stream)
-    (:h1 (str "tasks"))
-    (set-stack
-     'tasks
-     '(("tasks" ("first" "second" "third"))
-       ("options" ("complete" "delete"))
-       ("confirm" ("yes" "no"))))
-    (render-stack stream)))
-
 (defun handle-selection (element)
   (let* ((pos (position #\- element))
          (category (subseq element 0 pos))
@@ -129,17 +110,6 @@
   (let ((stack (session-value 'stack)))
     (if (or (null stack) (not (equal key (car stack))))
       (set-stack key new-stack))))
-
-(defun render-help (stream)
-  (with-html-output (stream)
-    (:h1 (str "help"))
-    (initialize-stack
-     'help
-     `(("categories"
-        (("introduction" select-help)
-         ("tasks" select-help)
-         ("now" select-help)))))
-    (render-stack stream)))
 
 (defun stack-push (column)
   (set-stack
@@ -160,15 +130,15 @@
          (unless (equal name (car column))
            (collect column)))))
 
-(defun select-help (category)
-  (possibly-remove-column "text")
-  (stack-push
-   `(("text"
-      ,(cond
-         ((equal category "introduction")
-          '(("This is the introduction.")))
-         ((equal category "tasks")
-          '(("'Tasks' shows you all the tasks.")))
-         ((equal category "now")
-          '(("'Now' informs you about the present moment.")))))))
-  (rerender-body))
+(defmacro define-page (name &body body)
+  (destructuring-bind (name &key no-heading) (ensure-list name)
+    `(defun ,(symb 'render-page- name) (stream)
+       (with-html-output (stream)
+         (:div :class "page"
+               ,@(unless no-heading `((:h1 (str ,(string-downcase name)))))
+               ,@body)))))
+
+(define-page (stack :no-heading t)
+  (:h1 (esc (string-downcase (car (session-value 'stack)))))
+  (render-stack stream))
+

@@ -28,6 +28,9 @@
        ((@ shortcut add) "down" (lambda (event) (handle-navigation el event false)) opt)
        ((@ shortcut add) "enter" (lambda (event) (handle-navigation-enter el event)) opt))
 
+     (defun focus (el)
+      ((@ el focus)))
+
      (defun move-to (id)
        (let* ((el (get-by-id id))
               (type (@ el node-name)))
@@ -35,10 +38,10 @@
            ((@ el focus))
            (if (== type "TABLE")
              (if (slot-value el 'current-selection)
-               ((@ (slot-value el 'current-selection) focus))
+               (focus (@ (slot-value el 'current-selection)))
                (if (slot-value el 'current-focus)
-                 ((@ (slot-value el 'current-focus) focus))
-                 ((@ (@ (aref el.rows 0) first-child) focus))))))))
+                 (focus (@ (slot-value el 'current-focus)))
+                 (focus (@ (@ (aref el.rows 0) first-child)))))))))
 
      (defun handle-navigation (el event up)
        (let* ((elements (slot-value el 'navigation-elements))
@@ -54,7 +57,7 @@
                               0
                               (1+ index))))))
          (setf (slot-value el 'current-focus) next)
-         ((@ next focus))))
+         (focus next)))
 
      (defun handle-navigation-enter (el event)
        (request "selection" (create :element (@ (@ document active-element) id))))
