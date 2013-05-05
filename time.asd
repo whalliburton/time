@@ -14,4 +14,4 @@
                (:file "tasks")
                (:file "application")
                (:file "initialize"))
-  :depends-on (:deck-client :web :cl-who :local-time :color-gradients))
+  :depends-on (:deck-client :web :cl-who :local-time :color-gradients :alexandria))

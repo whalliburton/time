@@ -15,16 +15,14 @@
   (declare (ignore index))
   (possibly-remove-column "text")
   (stack-push
-   `(("text"
-      ,(cond
-         ((equal category "introduction")
-          '(("This is the introduction.")))
-         ((equal category "tasks")
-          '(("'Tasks' shows you all the tasks.")))
-         ((equal category "now")
-          '(("'Now' informs you about the present moment.")))))))
+   `("text"
+     ,(cond
+        ((equal category "introduction")
+         '(("This is the introduction.")))
+        ((equal category "tasks")
+         '(("'Tasks' shows you all the tasks.")))
+        ((equal category "now")
+         '(("'Now' informs you about the present moment."))))))
+  (select-column "categories" category)
   (rerender-body))
-
-
-
 

@@ -29,9 +29,6 @@
         (format nil "'~A' was not understood. Perhaps you need 'Help'?" (string-capitalize value)))
   (view-page 'error))
 
-(define-command add (title)
-  (deck:add-node "time:task" `(("title" ,title)))
-  (time-command-show "tasks"))
 
 
 

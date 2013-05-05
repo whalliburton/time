@@ -39,8 +39,10 @@
          (scripts (cdr (reverse *scripts*))))
     (format nil "setBody(\"~A\");~{~A~}" (url-encode body) scripts)))
 
+(defmacro stack () `(session-value 'stack))
+
 (defun set-stack (key stack)
-  (setf (session-value 'stack) (cons key stack)))
+  (setf (stack) (cons key (copy-tree stack))))
 
 (defparameter *gradient* (let* ((steps 5)
                                 (list
@@ -56,12 +58,12 @@
 (defun render-stack (stream)
   (let (scripts
         (gradient-index 0)
-        (stack (session-value 'stack)))
+        (stack (stack)))
     (flet ((next-gradient ()
              (prog1
                  (aref *gradient* gradient-index)
                (incf gradient-index))))
-      (script (format nil "setShortcutMove('command','down','~A');" (caadr (session-value 'stack))))
+      (script (format nil "setShortcutMove('command','down','~A');" (caadr (stack))))
       (with-html-output (stream)
         (:table
          :id "stack"
@@ -70,24 +72,34 @@
            (with last-name)
            (for el on (cdr stack))
            (for (name rows) in (cdr stack))
-           (htm
-            (:td :valign :top :style "padding-right:40px;"
-                 (:table :id name
-                         (iter (for row in rows)
-                               (for index from 0)
-                               (htm (:tr (:td :tabindex 0
-                                              :onfocus "handleFocus(this,event);"
-                                              :onblur "handleBlur(this,event);"
-                                              :id (format nil "~A-~A" name index)
-                                              (:div :class "box"
-                                                    :style (format nil "background-color:~A;" (next-gradient))
-                                                    (render-stack-element stream (car row)))))))))
-            (push (list
-                   name name
-                   (if last-name (prin1-to-string last-name) "\"command\"")
-                   (if (cdr el) (prin1-to-string (caadr el)) "false"))
-                  scripts)
-            (setf last-name name)))))
+           (let ((has-selected
+                   (iter (for row in rows)
+                         (destructuring-bind (el &key selected &allow-other-keys) row
+                           (when selected (return t))))))
+             (htm
+              (:td :valign :top :style "padding-right:40px;"
+                   (:table :id name
+                           (iter (for row in rows)
+                                 (for index from 0)
+                                 (destructuring-bind (el &key selected &allow-other-keys) row
+                                   (htm (:tr (:td :tabindex 0
+                                                  :onfocus "handleFocus(this,event);"
+                                                  :onblur "handleBlur(this,event);"
+                                                  :id (format nil "~A-~A" name index)
+                                                  (:div :class (cond
+                                                                 (selected "box selected")
+                                                                 (has-selected "box unselected")
+                                                                 (t "box"))
+                                                        :style (format nil "background-color:~A;" (next-gradient))
+                                                        (render-stack-element stream el)))))))))
+              (push (list
+                     name name
+                     (if last-name "false"
+                       ; (prin1-to-string last-name)
+                       "\"command\"")
+                     (if (cdr el) (prin1-to-string (caadr el)) "false"))
+                    scripts)
+              (setf last-name name))))))
         (let ((scripts
                 (with-output-to-string (stream)
                   (iter (for script in (nreverse scripts))
@@ -98,10 +110,10 @@
 (defun-simple-memoized template-type-keyword (template-id)
   (intern (string-upcase (field-value (deck:get-node template-id) "name")) :keyword))
 
-(defun render-stack-element (stream row)
-  (etypecase row
-    (string (princ (cl-who:escape-string row) stream))
-    (node (render (template-type-keyword (template-id row)) stream row))))
+(defun render-stack-element (stream el)
+  (etypecase el
+    (string (princ (cl-who:escape-string el) stream))
+    (node (render (template-type-keyword (template-id el)) stream el))))
 
 (defmethod render (type stream node)
   (with-html-output (stream)
@@ -116,34 +128,37 @@
   (let* ((pos (position #\- element))
          (category (subseq element 0 pos))
          (index (parse-integer (subseq element (1+ pos))))
-         (stack (session-value 'stack))
+         (stack (stack))
          (column (second (or (assoc category (cdr stack) :test #'equal)
                              (error "Unknown category ~S." category))))
          (row (nth index column)))
-    (destructuring-bind (name &key onselection) row
+    (destructuring-bind (name &key onselection &allow-other-keys) row
       (when onselection
         (etypecase onselection
           (symbol (funcall onselection index name)))))))
 
 (defun initialize-stack (key new-stack)
-  (let ((stack (session-value 'stack)))
+  (let ((stack (stack)))
     (if (or (null stack) (not (equal key (car stack))))
       (set-stack key new-stack))))
 
+(defun column-name (column)
+  (if (consp (car column)) (caar column) (car column)))
+
 (defun stack-push (column)
   (set-stack
-   (car (session-value 'stack))
-   (append (cdr (session-value 'stack)) column))
-  (setf (session-value 'select) (caar column)))
+   (car (stack))
+   (append (cdr (stack)) (list column)))
+  (setf (session-value 'select) (car column)))
 
 (defun stack-pushnew (column)
-  (unless (assoc (caar column) (cdr (session-value 'stack)) :test 'equal)
+  (unless (assoc (car column) (cdr (stack)) :test 'equal)
     (stack-push column)))
 
 (defun possibly-remove-column (name)
   (set-stack
-   (car (session-value 'stack))
-   (iter (for column in (cdr (session-value 'stack)))
+   (car (stack))
+   (iter (for column in (cdr (stack)))
          (unless (equal name (car column))
            (collect column)))))
 
@@ -156,12 +171,55 @@
                ,@body)))))
 
 (define-page (stack :no-heading t)
-  (:h1 (esc (string-downcase (car (session-value 'stack)))))
+  (:h1 (esc (string-downcase (car (stack)))))
   (render-stack stream))
 
+(defun stack-column (name)
+  (assoc name (cdr (stack)) :test #'string= :key (lambda (el) (if (consp el) (car el) el))))
+
+(defun unselect-column (column)
+  (iter (for row in (second column))
+        (remf (cdr row) :selected)))
+
+(defun unselect-column-named (name)
+  (unselect-column (stack-column name)))
+
+(defun select-nth-column (name index)
+  (unselect-column-named name)
+  (let ((column (stack-column name)))
+    (iter (for row in (second column))
+          (for x from 0)
+          (when (= x index)
+            (setf (getf (cdr row) :selected) t)))))
+
+(defun select-column (name val)
+  (unselect-column-named name)
+  (let ((column (stack-column name)))
+    (iter (for row in (second column))
+          (when (equal (car row) val)
+            (setf (getf (cdr row) :selected) t)))))
+
+(defun last-column () (last1 (cdr (stack))))
+
+(defun selected-row-id (column)
+  (iter (for row in (second column))
+        (for index from 0)
+        (when (getf (cdr row) :selected)
+          (return (format nil "~A-~A" (car column) index)))))
+
 (defun pop-stack ()
-  (setf (session-value 'stack) (butlast (session-value 'stack)))
-  (when (null (cdr (session-value 'stack)))
-    (setf (session-value 'page) nil))
-  (setf (session-value 'select) (car (last1 (cdr (session-value 'stack)))))
+  (setf (stack) (butlast (stack)))
+  (when (null (cdr (stack)))
+    (setf (session-value 'page) nil
+          (session-value 'select) nil))
+  (when-let (current (last-column))
+    (let ((row-id (selected-row-id current)))
+      (unselect-column current)
+      (setf (session-value 'select) (or row-id (car current)))))
   (rerender-body))
+
+(defun print-stack ()
+  (iter (for (name rows) in (cdr (stack)))
+        (format t "~A~%" name)
+        (iter (for (name . args) in rows)
+              (format t "  ~A~40T~@[~S~]~%" name args))))

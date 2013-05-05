@@ -39,16 +39,11 @@
        ((@ el focus)))
 
      (defun move-to (id)
-       (let* ((el (get-by-id id))
-              (type (@ el node-name)))
-         (if (== type "INPUT")
-           ((@ el focus))
-           (if (== type "TABLE")
-             (if (slot-value el 'current-selection)
-               (focus (@ (slot-value el 'current-selection)))
-               (if (slot-value el 'current-focus)
-                 (focus (@ (slot-value el 'current-focus)))
-                 (focus (@ (@ (aref el.rows 0) first-child)))))))))
+      (let* ((el (get-by-id id))
+             (type (@ el node-name)))
+        (if (== type "TABLE")
+          (focus (@ (@ (aref el.rows 0) first-child)))
+          (focus el))))
 
      (defun handle-navigation (el event up)
        (let* ((elements (slot-value el 'navigation-elements))
@@ -63,7 +58,6 @@
                             (if (= index last)
                               0
                               (1+ index))))))
-         (setf (slot-value el 'current-focus) next)
          (focus next)))
 
      (defun handle-navigation-enter (el event)

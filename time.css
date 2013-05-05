@@ -4,5 +4,9 @@ textarea { background:black;color:white;font-size:100%;padding:10px; }
 
 div.box {  padding:15px 13px 15px 13px; cursor:pointer; font-size:150%; text-shadow: 1px 1px black;}
 
+div.unselected { opacity: 0.1 }
+
+div.selected { }
+
 td:focus { outline-width:0; }
 

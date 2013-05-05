@@ -28,4 +28,22 @@
 (defmethod render ((type (eql :task)) stream node)
   (with-html-output (stream)
     (when (field-value node "deleted") (web::icon :trash))
+    (:span :style "padding-right:10px;"
+           (web::icon (if (field-value node "completed") :check :check-empty)))
     (esc (field-value node "title"))))
+
+(defmethod render ((type (eql :tag)) stream node)
+  (with-html-output (stream)
+    (:span :style "padding-right:10px;" (web::icon :tag))
+    (esc (field-value node "name"))))
+
+(define-command add (cmd)
+  (multiple-value-bind (what arg) (split-out-command cmd)
+    (cond
+      ((equal what "task")
+       (deck:add-node "time:task" `(("title" ,arg)))
+       (time-command-show "tasks")))
+    (cond
+      ((equal what "tag")
+       (deck:add-node "time:tag" `(("name" ,arg)))
+       (time-command-show "tags")))))
