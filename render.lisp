@@ -132,18 +132,21 @@
      (iter (for (name val) in (fields node))
            (htm (:tr (:th (esc name)) (:td (esc (princ-to-string val)))))))))
 
+(defun stack-level-name-compare (a b)
+  (equal (stack-level-name a) (stack-level-name b)))
+
 (defun handle-selection (element)
   (let* ((pos (position #\- element))
          (category (subseq element 0 pos))
          (index (parse-integer (subseq element (1+ pos))))
          (stack (stack))
-         (column (second (or (assoc category (cdr stack) :test #'equal)
+         (column (second (or (assoc category (cdr stack) :test #'stack-level-name-compare)
                              (error "Unknown category ~S." category))))
          (row (nth index column)))
-    (destructuring-bind (name &key onselection &allow-other-keys) row
+    (destructuring-bind (description &key onselection &allow-other-keys) row
       (when onselection
         (etypecase onselection
-          (symbol (funcall onselection index name)))))))
+          (symbol (funcall onselection index (stack-level-name description))))))))
 
 (defun initialize-stack (key new-stack)
   (let ((stack (stack)))
