@@ -15,15 +15,22 @@
     (or options
         '(("no options")))))
 
+(defun selected-task ()
+  (iter (for row in (stack-column-elements (nth-stack-column 0)))
+        (destructuring-bind (el &key selected &allow-other-keys) row
+          (when selected
+            (return el)))
+        (finally (error "no selected task"))))
+
 (defun complete-task (index name)
   (declare (ignore index name))
-  (deck:set-fields (session-value 'selected) `(("completed" t) ("completed on" ,(now))))
+  (deck:set-fields (selected-task) `(("completed" t) ("completed on" ,(now))))
   (setup-showing)
   (rerender-body))
 
 (defun delete-task (index name)
   (declare (ignore index name))
-  (deck:set-fields (session-value 'selected) `(("deleted" t)))
+  (deck:set-fields (selected-task) `(("deleted" t)))
   (setup-showing)
   (rerender-body))
 

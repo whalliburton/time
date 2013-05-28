@@ -41,6 +41,12 @@
 
 (defmacro stack () `(session-value 'stack))
 
+(defun stack-column-elements (column)
+  (second column)
+
+(defun nth-stack-column (n)
+  (nth n (cdr (stack)))))
+
 (defun set-stack (key stack)
   (setf (stack) (cons key (copy-tree stack))))
 
