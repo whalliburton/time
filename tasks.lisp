@@ -10,6 +10,7 @@
   (let ((options
           `(,@(unless (field-value node "completed")
                 '(("complete" :onselection complete-task)))
+              ("tag" :onselection tag-task)
               ,@(unless (field-value node "deleted")
                   '(("delete" :onselection delete-task))))))
     (or options
@@ -33,19 +34,13 @@
   (select-column "options" "delete")
   (stack-push
    '("confirmation"
-     (("yes" :onselection finish-delete-task)
-      ("cancel" :onselection cancel-delete-task))))
+     (("yes" :onselection finish-delete-task))))
   (rerender-body))
 
 (defun finish-delete-task (index name)
   (declare (ignore index name))
   (deck:set-fields (selected-task) `(("deleted" t)))
   (setup-showing)
-  (rerender-body))
-
-(defun cancel-delete-task (index name)
-  (declare (ignore index name))
-  (pop-stack)
   (rerender-body))
 
 (defmethod render ((type (eql :task)) stream node)
@@ -73,3 +68,31 @@
 
 (defun add-task (raw)
   (deck:add-node "time:task" `(("title" ,raw))))
+
+(defun list-all-tags ()
+  (deck:search "time:tags"))
+
+(defun list-task-tags (task)
+  (deck:search `(("time:task" (:= :id ,task)) "tagged")))
+
+(defun task-tags-available (task)
+  (set-difference (list-all-tags) (list-task-tags task) :key #'id))
+
+(defun tag-task (index name)
+  (declare (ignore index name))
+  (select-column "options" "tag")
+  (stack-push
+   `("tags"
+     ,(let ((available (task-tags-available (selected-task))))
+        (if available
+          (iter (for tag in available)
+                (collect `(,tag :onselection finish-tag-task)))
+          `(("no available tags"))
+          ))))
+  (rerender-body))
+
+(defun finish-tag-task (index tag)
+  (declare (ignore index))
+  (deck:add-edge "tagged" (selected-task) tag)
+  (setup-showing)
+  (rerender-body))
