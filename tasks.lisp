@@ -43,9 +43,12 @@
   (multiple-value-bind (what arg) (split-out-command cmd)
     (cond
       ((equal what "task")
-       (deck:add-node "time:task" `(("title" ,arg)))
+       (add-task arg)
        (time-command-show "tasks")))
     (cond
       ((equal what "tag")
        (deck:add-node "time:tag" `(("name" ,arg)))
        (time-command-show "tags")))))
+
+(defun add-task (raw)
+  (deck:add-node "time:task" `(("title" ,raw))))
