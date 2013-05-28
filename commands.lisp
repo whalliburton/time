@@ -13,7 +13,7 @@
             (string-left-trim '(#\space) (subseq string pos)))))
 
 (defun handle-command (value)
-  (multiple-value-bind (command arguments) (split-out-command (url-decode value))
+  (multiple-value-bind (command arguments) (split-out-command (string-left-trim '(#\space) (url-decode value)))
     (cond
       ((member command *commands* :test #'string-equal)
        (funcall

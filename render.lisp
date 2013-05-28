@@ -111,7 +111,9 @@
                   (iter (for script in (nreverse scripts))
                         (apply #'format stream "setupNavigation(~S,\"~A-\",~A,~A);" script)))))
           (script scripts))
-        (script "setShortcutFn(\"stack\",81,function () {request(\"pop-stack\");} );")))))
+        (script "setShortcutFn(\"stack\",81,function () {request(\"pop-stack\");} );")
+        (script "setShortcutFn(\"stack\",32,function () {focus(getById(\"command\"));});")
+        ))))
 
 (defun-simple-memoized template-type-keyword (template-id)
   (intern (string-upcase (field-value (deck:get-node template-id) "name")) :keyword))
