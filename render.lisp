@@ -42,10 +42,10 @@
 (defmacro stack () `(session-value 'stack))
 
 (defun stack-column-elements (column)
-  (second column)
+  (second column))
 
 (defun nth-stack-column (n)
-  (nth n (cdr (stack)))))
+  (nth n (cdr (stack))))
 
 (defun set-stack (key stack)
   (setf (stack) (cons key (copy-tree stack))))
@@ -222,7 +222,7 @@
   (iter (for row in (second column))
         (for index from 0)
         (when (getf (cdr row) :selected)
-          (return (format nil "~A-~A" (car column) index)))))
+          (return (format nil "~A-~A" (column-name column) index)))))
 
 (defun handle-cancel-cleanup ()
   (let ((description (car (last1 (stack)))))
@@ -240,7 +240,7 @@
   (when-let (current (last-column))
     (let ((row-id (selected-row-id current)))
       (unselect-column current)
-      (setf (session-value 'select) (or row-id (car current)))))
+      (setf (session-value 'select) (or row-id (column-name current)))))
   (rerender-body))
 
 (defun print-stack ()

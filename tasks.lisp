@@ -30,8 +30,22 @@
 
 (defun delete-task (index name)
   (declare (ignore index name))
+  (select-column "options" "delete")
+  (stack-push
+   '("confirmation"
+     (("yes" :onselection finish-delete-task)
+      ("cancel" :onselection cancel-delete-task))))
+  (rerender-body))
+
+(defun finish-delete-task (index name)
+  (declare (ignore index name))
   (deck:set-fields (selected-task) `(("deleted" t)))
   (setup-showing)
+  (rerender-body))
+
+(defun cancel-delete-task (index name)
+  (declare (ignore index name))
+  (pop-stack)
   (rerender-body))
 
 (defmethod render ((type (eql :task)) stream node)
