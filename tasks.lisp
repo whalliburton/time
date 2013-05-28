@@ -1,6 +1,8 @@
 (in-package :time)
 
+(define-showable all (("time:task" (:!= "deleted" t))))
 (define-showable tasks (("time:task" (:and (:!= "completed" t) (:!= "deleted" t)))))
+(define-showable tags (("time:tag")))
 (define-showable completed (("time:task" (:and (:= "completed" t) (:!= "deleted" t)))))
 (define-showable deleted (("time:task" (:= "deleted" t))))
 

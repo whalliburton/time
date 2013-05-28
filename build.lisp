@@ -7,7 +7,8 @@
 (defparameter *templates*
   '(("task" (("title" :string) ("priority" :integer) ("deleted" :boolean)
              ("completed" :boolean) ("completed on" :date)))
-    ("current task" "system:user" "task" "current worker")))
+    ("tag" (("name" :string)))
+    ("tagged" "task" "tag" "task of")))
 
 (defun build (&key recreate)
   (create-templates *templates* recreate))

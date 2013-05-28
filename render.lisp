@@ -55,6 +55,9 @@
                                    )))
                            (make-array (length list) :initial-contents list)))
 
+(defun stack-level-name (level)
+  (if (consp level) (car level) level))
+
 (defun render-stack (stream)
   (let (scripts
         (gradient-index 0)
@@ -71,11 +74,12 @@
           (iter
            (with last-name)
            (for el on (cdr stack))
-           (for (name rows) in (cdr stack))
+           (for (raw-name rows) in (cdr stack))
            (let ((has-selected
                    (iter (for row in rows)
                          (destructuring-bind (el &key selected &allow-other-keys) row
-                           (when selected (return t))))))
+                           (when selected (return t)))))
+                 (name (stack-level-name raw-name)))
              (htm
               (:td :valign :top :style "padding-right:40px;"
                    (:table :id name
@@ -97,7 +101,9 @@
                      (if last-name "false"
                        ; (prin1-to-string last-name)
                        "\"command\"")
-                     (if (cdr el) (prin1-to-string (caadr el)) "false"))
+                     (if (cdr el)
+                       (prin1-to-string (stack-level-name (caadr el)))
+                       "false"))
                     scripts)
               (setf last-name name))))))
         (let ((scripts
@@ -149,7 +155,7 @@
   (set-stack
    (car (stack))
    (append (cdr (stack)) (list column)))
-  (setf (session-value 'select) (car column)))
+  (setf (session-value 'select) (stack-level-name (car column))))
 
 (defun stack-pushnew (column)
   (unless (assoc (car column) (cdr (stack)) :test 'equal)
@@ -207,7 +213,15 @@
         (when (getf (cdr row) :selected)
           (return (format nil "~A-~A" (car column) index)))))
 
+(defun handle-cancel-cleanup ()
+  (let ((description (car (last1 (stack)))))
+    (when (consp description)
+      (destructuring-bind (name &key oncancel &allow-other-keys) description
+        (declare (ignore name))
+        (when oncancel (funcall oncancel))))))
+
 (defun pop-stack ()
+  (handle-cancel-cleanup)
   (setf (stack) (butlast (stack)))
   (when (null (cdr (stack)))
     (setf (session-value 'page) nil

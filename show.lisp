@@ -8,7 +8,8 @@
 (defun setup-showing ()
   (let* ((what (session-value 'showing-what))
          (query (second (assoc what *showable* :test #'string-equal)))
-         (results (deck:search query)))
+         (results (deck:search query))
+         (selected (session-value 'selected)))
     (setf (session-value 'select) "showing"
           (session-value 'showing) results)
     (set-stack
@@ -16,7 +17,8 @@
      `(("showing"
         ,(if results
            (iter (for el in results)
-                 (collect (list el :onselection 'show-options)))
+                 (collect `(,el :onselection show-options ,@(when (and selected (eql (id el) (id selected)))
+                                                              '(:selected t)))))
            `((,(format nil "no ~A" (cl-who:escape-string what))))))))))
 
 (define-command show (what)
@@ -33,9 +35,14 @@
   (declare (ignore name))
   (let ((selected (nth index (session-value 'showing))))
     (setf (session-value 'selected) selected)
-    (stack-pushnew
-     `(("options" ,(create-options (template-type-keyword (template-id selected)) selected)))))
+    (setup-showing)
+    (stack-push
+     `(("options" :oncancel cleanup-options)
+       ,(create-options (template-type-keyword (template-id selected)) selected))))
   (rerender-body))
+
+(defun cleanup-options ()
+  (setf (session-value 'selected) nil))
 
 (defmethod create-options (type node)
   `(("no options")))
