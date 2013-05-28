@@ -21,7 +21,7 @@
       (t (unknown-command command))))
   (rerender-body))
 
-(defun view-page (name) (setf (session-value 'page) (symb 'render-page- name)))
+(defun view-page (name) (setf (session-value 'page) (intern (mkstr 'render-page- name) :time)))
 (defun current-page () (session-value 'page))
 
 (defun unknown-command (value)
