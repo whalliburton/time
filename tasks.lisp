@@ -11,7 +11,8 @@
           `(,@(unless (field-value node "completed")
                 '(("complete" :onselection complete-task)))
               ("tag" :onselection tag-task)
-              ,@(unless (field-value node "deleted")
+              ,@(if (field-value node "deleted")
+                  '(("undelete" :onselection undelete-task))
                   '(("delete" :onselection delete-task))))))
     (or options
         '(("no options")))))
@@ -26,6 +27,12 @@
 (defun complete-task (index name)
   (declare (ignore index name))
   (deck:set-fields (selected-task) `(("completed" t) ("completed on" ,(now))))
+  (setup-showing)
+  (rerender-body))
+
+(defun undelete-task (index name)
+  (declare (ignore index name))
+  (deck:unset-field (selected-task) "deleted")
   (setup-showing)
   (rerender-body))
 
