@@ -83,11 +83,11 @@
 (defun add-task (raw)
   (deck:add-node "time:task" `(("title" ,raw))))
 
-(defun list-all-tags ()
-  (deck:search "time:tags"))
-
 (defun list-task-tags (task)
   (deck:search `(("time:task" (:= :id ,task)) "tagged")))
+
+(defun list-all-tags ()
+  (deck:search "time:tags"))
 
 (defun task-tags-available (task)
   (set-difference (list-all-tags) (list-task-tags task) :key #'id))
@@ -108,5 +108,33 @@
 (defun finish-tag-task (index tag)
   (declare (ignore index))
   (deck:add-edge "tagged" (selected-task) tag)
+  (setup-showing)
+  (rerender-body))
+
+(defmethod create-options ((type (eql :tag)) node)
+  `(("delete" :onselection delete-tag)))
+
+(defun delete-tag (index name)
+  (declare (ignore index name))
+  (select-column "options" "delete")
+  (stack-push
+   '("confirmation"
+     (("yes" :onselection finish-delete-tag))))
+  (rerender-body))
+
+(defun find-tag (name)
+  (or (deck:search `((:node "time:tag" (:= "name" ,name))) :first-one t)
+      (error "tag named ~S not found." name)))
+
+(defun selected-tag ()
+  (iter (for row in (stack-column-elements (nth-stack-column 0)))
+        (destructuring-bind (el &key selected &allow-other-keys) row
+          (when selected
+            (return el)))
+        (finally (error "no selected tag"))))
+
+(defun finish-delete-tag (index name)
+  (declare (ignore index name))
+  (deck:delete-node (selected-tag))
   (setup-showing)
   (rerender-body))
