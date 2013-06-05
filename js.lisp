@@ -4,6 +4,9 @@
   (ps*
    '(progn
 
+     (defun has-class (el name)
+      (return ((@ (@ el class-name) match) (*reg-exp (+ "\\b" name "\\b")))))
+
      (defun listen (element callback &optional (type "keydown"))
        ((@ element add-event-listener) type callback))
 
