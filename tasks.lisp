@@ -8,14 +8,14 @@
 
 (defmethod create-options ((type (eql :task)) node)
   (let ((options
-          `(,@(unless (field-value node "completed")
-                '(("complete" :onselection complete-task)))
-              ("tag" :onselection tag-task)
-              ,@(if (field-value node "deleted")
-                  '(("undelete" :onselection undelete-task))
-                  '(("delete" :onselection delete-task))))))
-    (or options
-        '(("no options")))))
+          `(,(if (field-value node "completed")
+               '("uncomplete" :onselection uncomplete-task)
+               '("complete" :onselection complete-task))
+             ,(if (field-value node "deleted")
+                '("undelete" :onselection undelete-task)
+                '("delete" :onselection delete-task))
+             ("tag" :onselection tag-task))))
+    (or options '(("no options")))))
 
 (defun selected-task ()
   (iter (for row in (stack-column-elements (nth-stack-column 0)))
@@ -27,6 +27,13 @@
 (defun complete-task (index name)
   (declare (ignore index name))
   (deck:set-fields (selected-task) `(("completed" t) ("completed on" ,(now))))
+  (setup-showing)
+  (rerender-body))
+
+(defun uncomplete-task (index name)
+  (declare (ignore index name))
+  (deck:unset-field (selected-task) "completed")
+  (deck:unset-field (selected-task) "completed on")
   (setup-showing)
   (rerender-body))
 
