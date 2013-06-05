@@ -95,6 +95,8 @@
                                    (htm (:tr (:td :tabindex 0
                                                   :onfocus "handleFocus(this,event);"
                                                   :onblur "handleBlur(this,event);"
+                                                  :class (cond (selected "selected")
+                                                               (has-selected "unselected"))
                                                   :id (format nil "~A-~A" name index)
                                                   (:div :class (cond
                                                                  (selected "box selected")

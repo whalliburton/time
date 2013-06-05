@@ -66,7 +66,8 @@
          (focus next)))
 
      (defun handle-navigation-enter (el event)
-       (request "selection" (create :element (@ (@ document active-element) id))))
+       (unless (has-class (@ document active-element) "unselected")
+         (request "selection" (create :element (@ (@ document active-element) id)))))
 
      (defvar *last-focus* nil)
 
