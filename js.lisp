@@ -3,8 +3,9 @@
 (defparameter *time-js-file*
   (ps*
    '(progn
-     (defun listen (element callback)
-       ((@ element add-event-listener) "keydown" callback))
+
+     (defun listen (element callback &optional (type "keydown"))
+       ((@ element add-event-listener) type callback))
 
      (defun numberp (el)
        (return (=== (typeof el) "number")))
@@ -33,7 +34,8 @@
          (when right (listen el ((@ shortcut build) "right" (lambda (event) (move-to right)))))
          (listen el ((@ shortcut build) "up" (lambda (event) (handle-navigation el event true))))
          (listen el ((@ shortcut build) "down" (lambda (event) (handle-navigation el event false))))
-         (listen el ((@ shortcut build) "enter" (lambda (event) (handle-navigation-enter el event))))))
+         (listen el ((@ shortcut build) "enter" (lambda (event) (handle-navigation-enter el event))))
+         (listen el (lambda (event) (handle-navigation-enter el event)) "click")))
 
      (defun focus (el)
        ((@ el focus)))
