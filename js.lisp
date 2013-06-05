@@ -37,6 +37,7 @@
          (when right (listen el ((@ shortcut build) "right" (lambda (event) (move-to right)))))
          (listen el ((@ shortcut build) "up" (lambda (event) (handle-navigation el event true))))
          (listen el ((@ shortcut build) "down" (lambda (event) (handle-navigation el event false))))
+         (listen el ((@ shortcut build) "tab" (lambda (event) (handle-navigation el event false))))
          (listen el ((@ shortcut build) "enter" (lambda (event) (handle-navigation-enter el event))))
          (listen el (lambda (event) (handle-navigation-enter el event)) "click")))
 
