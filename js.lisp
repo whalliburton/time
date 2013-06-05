@@ -45,11 +45,11 @@
        ((@ el focus)))
 
      (defun move-to (id)
-      (let* ((el (get-by-id id))
-             (type (@ el node-name)))
-        (if (== type "TABLE")
-          (focus (@ (@ (aref el.rows 0) first-child)))
-          (focus el))))
+       (let* ((el (get-by-id id))
+              (type (@ el node-name)))
+         (if (== type "TABLE")
+           (focus (@ (@ (aref el.rows 0) first-child)))
+           (focus el))))
 
      (defun handle-navigation (el event up)
        (let* ((elements (slot-value el 'navigation-elements))
