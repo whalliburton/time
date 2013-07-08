@@ -121,7 +121,7 @@
                   (iter (for script in (nreverse scripts))
                         (apply #'format stream "setupNavigation(~S,\"~A-\",~A,~A,~A);" script)))))
           (script scripts))
-        (script "setShortcutFn(\"stack\",32,function () {focus(getById(\"command\"));});")
+        (script "setShortcutFn(\"stack\",32,function (event) {possiblyFocusCommand(event);});")
         )))))
 
 (defun-simple-memoized template-type-keyword (template-id)

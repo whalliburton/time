@@ -50,6 +50,10 @@
          (unless (has-class (@ document active-element) "unselected")
            (request "selection" (create :element (@ (@ document active-element) id))))))
 
+     (defun possibly-focus-command (event)
+      (unless (is-input (@ event target))
+        (focus (get-by-id "command"))))
+
      )))
 
 (defun time-js-file () *time-js-file*)
