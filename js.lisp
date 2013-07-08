@@ -4,29 +4,6 @@
   (ps*
    '(progn
 
-     (defun has-class (el name)
-      (return ((@ (@ el class-name) match) (*reg-exp (+ "\\b" name "\\b")))))
-
-     (defun listen (element callback &optional (type "keydown"))
-       ((@ element add-event-listener) type callback))
-
-     (defun numberp (el)
-       (return (=== (typeof el) "number")))
-
-     (defun build-shortcut (key callback)
-       (return
-         (lambda (e)
-           (let* ((e (or e (@ window event)))
-                  (code (or (@ e key-code) (@ e which))))
-             (when (= key code) (callback e))))))
-
-     (defun set-shortcut-fn (target key fn)
-       (listen
-        (get-by-id target)
-        (if (numberp key)
-          (build-shortcut key fn)
-          ((@ shortcut build) key fn))))
-
      (defun set-shortcut-move (target key id)
        (set-shortcut-fn target key (lambda (event) (move-to id))))
 
