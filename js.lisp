@@ -70,21 +70,6 @@
        (unless (has-class (@ document active-element) "unselected")
          (request "selection" (create :element (@ (@ document active-element) id)))))
 
-     (defvar *last-focus* nil)
-
-     (defun clear-focus (el)
-       (setf (@ el style background-color) (@ el saved-background)
-             *last-focus* nil))
-
-     (defun handle-focus (el event)
-       (when *last-focus* (clear-focus *last-focus*))
-       (let ((child (@ el first-child)))
-         (setf (@ child saved-background) (@ child style background-color)
-               (@ child style background-color) "darkblue"
-               *last-focus* child)))
-
-     (defun handle-blur (el event)
-       (let ((child (@ el first-child)))
-         (clear-focus child))))))
+     )))
 
 (defun time-js-file () *time-js-file*)
