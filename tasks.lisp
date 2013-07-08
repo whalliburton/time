@@ -14,7 +14,8 @@
              ,(if (field-value node "deleted")
                 '("undelete" :onselection undelete-task)
                 '("delete" :onselection delete-task))
-             ("tag" :onselection tag-task))))
+             ("tag" :onselection tag-task)
+             ("edit" :onselection edit-task))))
     (or options '(("no options")))))
 
 (defun selected-task ()
@@ -138,3 +139,27 @@
   (deck:delete-node (selected-tag))
   (setup-showing)
   (rerender-body))
+
+(defun edit-task (index name)
+  (declare (ignore index name))
+  (select-column "options" "edit")
+  (stack-push
+   `("input"
+     ((:input :onenter "finish-edit-task" :value ,(field-value (selected-task) "title"))
+      ("cancel" :onselection cancel-edit-task))))
+  (rerender-body))
+
+(defun cancel-edit-task (index name)
+  (pop-stack))
+
+(defun set-field-through (node field value)
+  (deck:set-field node field value)
+  (setf (second (or (assoc field (fields node) :test #'string=)
+                    (error "Unknown field ~S." field)))
+        value))
+
+(defun finish-edit-task (value)
+  (let ((new-title (url-decode value)))
+    (set-field-through (selected-task) "title" new-title))
+  (pop-stack)
+  (pop-stack))

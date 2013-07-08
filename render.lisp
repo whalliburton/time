@@ -81,54 +81,59 @@
            (with last-name)
            (for el on (cdr stack))
            (for (raw-name rows) in (cdr stack))
-           (let ((has-selected
-                   (iter (for row in rows)
-                         (destructuring-bind (el &key selected &allow-other-keys) row
-                           (when selected (return t)))))
-                 (name (stack-level-name raw-name)))
-             (htm
-              (:td :valign :top :style "padding-right:40px;"
-                   (:table :id name
-                           (iter (for row in rows)
-                                 (for index from 0)
-                                 (destructuring-bind (el &key selected &allow-other-keys) row
-                                   (htm (:tr (:td :tabindex 0
-                                                  :onfocus "handleFocus(this,event);"
-                                                  :onblur "handleBlur(this,event);"
-                                                  :class (cond (selected "selected")
-                                                               (has-selected "unselected"))
-                                                  :id (format nil "~A-~A" name index)
-                                                  (:div :class (cond
-                                                                 (selected "box selected")
-                                                                 (has-selected "box unselected")
-                                                                 (t "box"))
-                                                        :style (format nil "background-color:~A;" (next-gradient))
-                                                        (render-stack-element stream el)))))))))
-              (push (list
-                     name name
-                     (if last-name "false"
+           (when rows
+             (let ((has-selected
+                     (iter (for row in rows)
+                           (destructuring-bind (el &key selected &allow-other-keys) row
+                             (when selected (return t)))))
+                   (name (stack-level-name raw-name)))
+               (htm
+                (:td :valign :top :style "padding-right:40px;"
+                     (:table :id name
+                             (iter (for row in rows)
+                                   (for index from 0)
+                                   (destructuring-bind (el &key selected onenter value &allow-other-keys) row
+                                     (htm (:tr (:td :tabindex 0
+                                                    :onfocus "handleFocus(this,event);"
+                                                    :onblur "handleBlur(this,event);"
+                                                    :class (cond (selected "selected")
+                                                                 (has-selected "unselected"))
+                                                    :id (format nil "~A-~A" name index)
+                                                    (:div :class (cond
+                                                                   (selected "box selected")
+                                                                   (has-selected "box unselected")
+                                                                   (t "box"))
+                                                          :style (format nil "background-color:~A;" (next-gradient))
+                                                          (render-stack-element stream el onenter value)))))))))
+                (push (list
+                       name name
+                       (if last-name "false"
                        ; (prin1-to-string last-name)
-                       "\"command\"")
-                     (if (cdr el)
-                       (prin1-to-string (stack-level-name (caadr el)))
-                       "false"))
-                    scripts)
-              (setf last-name name))))))
+                         "\"command\"")
+                       (if (cdr el)
+                         (prin1-to-string (stack-level-name (caadr el)))
+                         "false")
+                       (if (equal name "input") "false" "true"))
+                      scripts)
+                (setf last-name name))))))
         (let ((scripts
                 (with-output-to-string (stream)
                   (iter (for script in (nreverse scripts))
-                        (apply #'format stream "setupNavigation(~S,\"~A-\",~A,~A);" script)))))
+                        (apply #'format stream "setupNavigation(~S,\"~A-\",~A,~A,~A);" script)))))
           (script scripts))
-        (script "setShortcutFn(\"stack\",81,function () {request(\"pop-stack\");} );")
         (script "setShortcutFn(\"stack\",32,function () {focus(getById(\"command\"));});")
-        ))))
+        )))))
 
 (defun-simple-memoized template-type-keyword (template-id)
   (intern (string-upcase (field-value (deck:get-node template-id) "name")) :keyword))
 
-(defun render-stack-element (stream el)
+(defun render-stack-element (stream el onenter value)
   (etypecase el
     (string (princ (cl-who:escape-string el) stream))
+    (keyword (ecase el
+               (:input (with-html-output (stream)
+                         (:input :type "text" :id "input" :value value
+                                 :onkeypress (format nil "sendOnEnter(this,event,~S);" onenter))))))
     (node (render (template-type-keyword (template-id el)) stream el))))
 
 (defmethod render (type stream node)

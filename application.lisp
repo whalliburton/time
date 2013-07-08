@@ -12,7 +12,8 @@
                        :renderer 'render-time-front-page
                        :commands '(("command" handle-command :value)
                                    ("selection" handle-selection :element)
-                                   ("pop-stack" pop-stack))
+                                   ("pop-stack" pop-stack)
+                                   ("finish-edit-task" finish-edit-task :value))
                        :dispatches
                        `(,(hunchentoot:create-static-file-dispatcher-and-handler "/time.css" (time-file "time.css"))
                           ,(hunchentoot:create-static-file-dispatcher-and-handler "/shortcut.js" (time-file "shortcut.js"))
