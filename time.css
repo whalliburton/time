@@ -10,3 +10,10 @@ div.selected { }
 
 td:focus { outline-width:0; }
 
+div.dialog-backpane { width:100%;height:100%;background:black;opacity:0.60;position:absolute; }
+div.dialog-outer  { position:absolute; width:100%; height:100%; top:20%; }
+div.dialog-inner  { position:absolute; width:100%; text-align:center; }
+div.dialog  { display: inline-block; }
+
+div.button { display:inline-block;padding:5px 10px 5px 10px;border:1px solid gray;cursor:pointer; }
+div.button:hover { background-color:#333; }
