@@ -12,14 +12,6 @@
             (collect (rgb->web r g b)))
       vector)))
 
-(defvar *scripts* nil)
-
-(defmacro script (text)
-  `(if *scripts*
-     (push ,text *scripts*)
-     (with-html-output (stream)
-       (htm (:script :type "text/javascript" (str ,text))))))
-
 (defun render-time-front-page (stream)
   (let ((page (session-value 'page)))
     (with-html-output (stream)

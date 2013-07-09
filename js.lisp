@@ -11,7 +11,7 @@
        (let ((el (get-by-id target)))
          (setup-navigation target prefix)
          (setf (slot-value el 'enter-handler)
-               (lambda () (request "selection" (create :element (@ (@ document active-element) id)))))
+               (lambda (el selected) (request "selection" (create :element (@ selected id)))))
          (when left (listen el ((@ shortcut build) "left" (lambda (event) (move-to left)))))
          (when right (listen el ((@ shortcut build) "right" (lambda (event) (move-to right)))))
          (when pop
