@@ -119,7 +119,7 @@
         (let ((scripts
                 (with-output-to-string (stream)
                   (iter (for script in (nreverse scripts))
-                        (apply #'format stream "setupNavigation(~S,\"~A-\",~A,~A,~A);" script)))))
+                        (apply #'format stream "setupTimeNavigation(~S,\"~A-\",~A,~A,~A);" script)))))
           (script scripts))
         (script "setShortcutFn(\"stack\",32,function (event) {possiblyFocusCommand(event);});")
         )))))
